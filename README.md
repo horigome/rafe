@@ -1,4 +1,4 @@
-# Rafe commandline service with Go
+# "Rafe" Command exec Over the Web API
 
 ## Overview
 
@@ -36,6 +36,7 @@ Response
 
 
 ex.
+
     > curl -XPOST localhost:8080/command -d '{
       "commands": [
           {"name": "ls", "option": "-la"}
