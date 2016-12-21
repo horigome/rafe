@@ -14,6 +14,39 @@
 * golang.org/x/text/encoding/japanese
 * golang.org/x/text/transform
 
+## REST API
+
+#### (POST) /host:8080/command
+
+ Request body  
+
+    {
+      "commands": [
+          {
+            "name":   "command name",
+            "option": "command options"
+          },
+
+      ]
+    }
+
+Response
+
+    stdout text
+
+
+ex.
+    > curl -XPOST localhost:8080/command -d '{
+      "commands": [
+          {"name": "ls", "option": "-la"}
+      ]    
+    }'
+
+
+## License
+
+MIT
+
 ---
 
-2016. M.Horigome
+2016  M.Horigome
