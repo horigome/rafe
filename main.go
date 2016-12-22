@@ -4,11 +4,26 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 
 	"net/http"
 )
+
+// command usage
+var commandUsage = `
+rafe api service
+
+usage:
+    rafe <option>
+option:
+`
+
+// options
+type options struct {
+	portNo int
+}
 
 // command type
 type command struct {
@@ -82,9 +97,28 @@ func handlerCommand(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, ret)
 }
 
+// makeOptions
+func makeOptions() options {
+
+	var o options
+	flag.IntVar(&o.portNo, "port", 8080, " listen port no ")
+
+	flag.Usage = func() {
+		fmt.Println(commandUsage)
+		flag.PrintDefaults()
+	}
+
+	flag.Parse()
+	return o
+}
+
 // main
 func main() {
+	opt := makeOptions()
+
 	http.HandleFunc("/command", handlerCommand)
 	http.HandleFunc("/version", handlerVersion)
-	http.ListenAndServe(":8080", nil)
+
+	fmt.Println("==> start server.")
+	http.ListenAndServe(fmt.Sprintf(":%d", opt.portNo), nil)
 }
