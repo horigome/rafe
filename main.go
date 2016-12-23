@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"runtime"
 
 	"net/http"
 )
@@ -114,7 +115,10 @@ func makeOptions() options {
 
 // main
 func main() {
+
 	opt := makeOptions()
+	cpus := runtime.NumCPU()
+	runtime.GOMAXPROCS(cpus)
 
 	http.HandleFunc("/command", handlerCommand)
 	http.HandleFunc("/version", handlerVersion)
