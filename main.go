@@ -26,6 +26,12 @@ type options struct {
 	portNo int
 }
 
+// version type
+type version struct {
+	Version     string `json:"version"`
+	Description string `json:"description"`
+}
+
 // command type
 type command struct {
 	Name   string `json:"name"`
@@ -49,27 +55,39 @@ func (p *commands) Print() {
 }
 
 // handlerVersion
+// [GET] http://host:port/version
 func handlerVersion(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		fmt.Println("! method error.")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	v := "{ version: \"1.0.0.0\" }"
+	v := version{Version: "1.0.0.0", Description: "rafe command service"}
+	b, err := json.Marshal(v)
+	if err != nil {
+		fmt.Println("! json marshal error. > ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, v)
+	w.Write(b)
 }
 
 // handlerCommand
+// [POST] http://host:port/command
 func handlerCommand(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "POST" {
 		fmt.Println("! method error.")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("! Read body err.", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	fmt.Println(string(content))
@@ -77,6 +95,7 @@ func handlerCommand(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(content, &cmd)
 	if err != nil {
 		fmt.Println("! Json Unmarshal err. ", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	fmt.Println("Recv OK")
@@ -120,9 +139,11 @@ func main() {
 	cpus := runtime.NumCPU()
 	runtime.GOMAXPROCS(cpus)
 
+	// http handler
 	http.HandleFunc("/command", handlerCommand)
 	http.HandleFunc("/version", handlerVersion)
 
-	fmt.Println("==> start server.")
+	// start
+	fmt.Println("==> start server. http://localhost:", opt.portNo)
 	http.ListenAndServe(fmt.Sprintf(":%d", opt.portNo), nil)
 }
