@@ -23,8 +23,12 @@ option:
 
 // options
 type options struct {
-	portNo int
+	portNo int    // Service Port (default 8080)
+	locale string // "UTF8(Default)", or "SJIS"
 }
+
+// optionsGlobal Command options (global)
+var optionsGlobal = options{}
 
 // version type
 type version struct {
@@ -117,11 +121,11 @@ func handlerCommand(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, ret)
 }
 
-// makeOptions
-func makeOptions() options {
+// initOptions
+func initOptions() {
 
-	var o options
-	flag.IntVar(&o.portNo, "port", 8080, " listen port no ")
+	flag.IntVar(&optionsGlobal.portNo, "port", 8080, "Listen port")
+	flag.StringVar(&optionsGlobal.locale, "locale", "UTF8", "Locale")
 
 	flag.Usage = func() {
 		fmt.Println(commandUsage)
@@ -129,13 +133,12 @@ func makeOptions() options {
 	}
 
 	flag.Parse()
-	return o
 }
 
 // main
 func main() {
 
-	opt := makeOptions()
+	initOptions()
 	cpus := runtime.NumCPU()
 	runtime.GOMAXPROCS(cpus)
 
@@ -144,6 +147,6 @@ func main() {
 	http.HandleFunc("/version", handlerVersion)
 
 	// start
-	fmt.Println("==> start server. http://localhost:", opt.portNo)
-	http.ListenAndServe(fmt.Sprintf(":%d", opt.portNo), nil)
+	fmt.Println("==> start server. http://localhost:", optionsGlobal.portNo)
+	http.ListenAndServe(fmt.Sprintf(":%d", optionsGlobal.portNo), nil)
 }

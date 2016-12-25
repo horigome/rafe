@@ -4,6 +4,8 @@ package main
 
 import (
 	"bufio"
+	"fmt"
+	"io"
 	"log"
 	"os/exec"
 
@@ -12,7 +14,7 @@ import (
 )
 
 // argSlicer
-// "-a -b -c" string to  []string{"-a","-b","-c"} slice
+// "-a -b -c" string  ==>  []string{"-a","-b","-c"} slice split.
 func commmandOptionSlicer(line string) []string {
 	s := []string{}
 	item := ""
@@ -83,7 +85,17 @@ func commandExec(name string, option string, fn func(string)) error {
 		return err
 	}
 	// Stdout -> SJIS
-	scan := bufio.NewScanner(transform.NewReader(stdout, japanese.ShiftJIS.NewDecoder()))
+	var reader io.Reader
+	switch optionsGlobal.locale {
+	case "SJIS":
+		fmt.Println("* locale : SJIS")
+		reader = transform.NewReader(stdout, japanese.ShiftJIS.NewDecoder())
+	default:
+		fmt.Println("* locale : UTF8")
+		reader = stdout
+	}
+	scan := bufio.NewScanner(reader)
+	//scan := bufio.NewScanner(transform.NewReader(stdout, japanese.ShiftJIS.NewDecoder()))
 	for scan.Scan() {
 		fn(scan.Text() + "\n")
 	}
