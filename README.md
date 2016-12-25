@@ -1,10 +1,13 @@
-# "Rafe" Command exec Over the Web API
+# Rafe REST API Servie
+Command exec Over the Web API
 
 ## Overview
 
-コマンドラインを実行するリモートサービスです。 JSONでコマンドを指定できます。
+コマンドラインを実行するREST API Service です。 JSON形式で実行するコマンドを指定できます。
 
 ## How to build
+
+require golang. and GNU make
 
     > make vendor_update
     > make this
@@ -18,7 +21,13 @@
 
 #### (POST) /host:8080/command
 
- Request body  
+コマンドをサービスで実行し、結果をJSONで返却します。
+
+Request header
+
+    application/json
+
+body    
 
     {
       "commands": [
@@ -31,6 +40,11 @@
     }
 
 Response
+* 200 : OK
+* 400 : Bad Request
+* 500 : Internal error
+
+Body  (stdout text)
 
     stdout text
 
@@ -44,10 +58,32 @@ ex.
     }'
 
 
+#### (GET) /host:8080/version
+
+サービスのバージョンを取得  
+
+ response
+* 200 : OK
+* 400 : Bad Request
+
+body  
+
+    {
+      "version": "1.0.0.0"
+      "description": "rafe service"
+      ]
+    }
+
+ex.
+
+    > curl -XGET localhost:8080/version
+
+
+---
+
 ## License
 
 MIT
 
----
 
 2016  M.Horigome
