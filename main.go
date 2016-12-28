@@ -3,14 +3,15 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"runtime"
 
 	"net/http"
 )
+
+var version = "0.0.0.0"
 
 // command usage
 var commandUsage = `
@@ -30,102 +31,14 @@ type options struct {
 // optionsGlobal Command options (global)
 var optionsGlobal = options{}
 
-// version type
-type version struct {
-	Version     string `json:"version"`
-	Description string `json:"description"`
-}
-
-// command type
-type command struct {
-	Name   string `json:"name"`
-	Option string `json:"option"`
-}
-
-// commands type
-type commands struct {
-	Commands []command `json:"commands"`
-}
-
-// Print method
-func (p *commands) Print() {
-	// debug
-	for i, v := range p.Commands {
-		fmt.Printf("Index[ %d ]\n", i)
-		fmt.Println(" name   :", v.Name)
-		fmt.Println(" option :", v.Option)
-		fmt.Println("----------------------")
-	}
-}
-
-// handlerVersion
-// [GET] http://host:port/version
-func handlerVersion(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		fmt.Println("! method error.")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	v := version{Version: "1.0.0.0", Description: "rafe command service"}
-	b, err := json.Marshal(v)
-	if err != nil {
-		fmt.Println("! json marshal error. > ", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
-}
-
-// handlerCommand
-// [POST] http://host:port/command
-func handlerCommand(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method != "POST" {
-		fmt.Println("! method error.")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	content, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("! Read body err.", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	fmt.Println(string(content))
-	var cmd commands
-	err = json.Unmarshal(content, &cmd)
-	if err != nil {
-		fmt.Println("! Json Unmarshal err. ", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	fmt.Println("Recv OK")
-
-	// debug --
-	cmd.Print()
-	// --
-
-	ret := ""
-	for _, exec := range cmd.Commands {
-		err := commandExec(exec.Name, exec.Option, func(out string) {
-			ret += out
-		})
-		if err != nil {
-			fmt.Println("! exec err. ", err)
-		}
-	}
-	w.Header().Set("Content-Type", "text")
-	fmt.Fprint(w, ret)
-}
-
 // initOptions
 func initOptions() {
 
+	var v bool
+
 	flag.IntVar(&optionsGlobal.portNo, "port", 8080, "Listen port")
 	flag.StringVar(&optionsGlobal.locale, "locale", "UTF8", "Locale")
+	flag.BoolVar(&v, "version", false, "Version.")
 
 	flag.Usage = func() {
 		fmt.Println(commandUsage)
@@ -133,6 +46,11 @@ func initOptions() {
 	}
 
 	flag.Parse()
+
+	if v == true {
+		fmt.Println("rafe. version ", version)
+		os.Exit(0)
+	}
 }
 
 // main
