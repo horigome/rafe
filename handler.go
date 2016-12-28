@@ -45,7 +45,7 @@ func handlerVersion(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	v := versionStruct{Version: "1.0.0.0", Description: "rafe command service"}
+	v := versionStruct{Version: version, Description: "rafe command service"}
 	b, err := json.Marshal(v)
 	if err != nil {
 		fmt.Println("! json marshal error. > ", err)
