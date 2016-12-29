@@ -12,6 +12,10 @@ require golang. and GNU make
     > make vendor_update
     > make this
 
+## How to Test
+
+    > make test
+
 ## require
 
 * golang.org/x/text/encoding/japanese
