@@ -3,7 +3,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
+
 	"net/http/httptest"
 	"testing"
 )
@@ -26,11 +30,36 @@ func Test_handlerCommand(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(handlerCommand))
 	defer ts.Close()
 
-	r, err := http.Get(ts.URL + "/command")
-	if err != nil {
+	if r, err := http.Get(ts.URL + "/command"); err != nil {
 		t.Fatalf("Error by http.Get(). %v", err)
+	} else {
+		if r.StatusCode == http.StatusOK {
+			t.Fatalf("/command is POST Method only. %v", err)
+		}
 	}
-	if r.StatusCode == http.StatusOK {
-		t.Fatalf("/command is POST Method only. %v", err)
+
+	// POST test
+	s1 := commands{Commands: []command{
+		{Name: "echo", Option: "test"},
+	}}
+	b, _ := json.Marshal(s1)
+
+	if r, err := http.NewRequest("POST", ts.URL+"/command", bytes.NewBuffer(b)); err != nil {
+		t.Fatalf("Error by http.Get(). %v", err)
+	} else {
+		client := &http.Client{}
+		rsp, _ := client.Do(r)
+
+		if rsp.StatusCode != http.StatusOK {
+			t.Fatalf("/command POST failed. %v", err)
+		}
+
+		recvBody, e := ioutil.ReadAll(rsp.Body)
+		if e != nil {
+			t.Fatalf("/comand response body read failed. %v", e)
+		}
+		if string(recvBody) != "test\n" {
+			t.Fatalf("/command response result unmatch %s != %s ", string(recvBody), "test\n")
+		}
 	}
 }
