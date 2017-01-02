@@ -42,24 +42,26 @@ func Test_handlerCommand(t *testing.T) {
 	s1 := commands{Commands: []command{
 		{Name: "echo", Option: "test"},
 	}}
+
 	b, _ := json.Marshal(s1)
 
-	if r, err := http.NewRequest("POST", ts.URL+"/command", bytes.NewBuffer(b)); err != nil {
-		t.Fatalf("Error by http.Get(). %v", err)
+	if r, err := http.Post(ts.URL+"/command", "application/json", bytes.NewBuffer(b)); err != nil {
+		t.Fatalf("Error by http.Post(). %v", err)
 	} else {
-		client := &http.Client{}
-		rsp, _ := client.Do(r)
-
-		if rsp.StatusCode != http.StatusOK {
-			t.Fatalf("/command POST failed. %v", err)
+		if r.StatusCode != http.StatusOK {
+			t.Fatalf("/comand response body read failed. %v", err)
 		}
 
-		recvBody, e := ioutil.ReadAll(rsp.Body)
+		// Recv body (stdout string)
+		recvBody, e := ioutil.ReadAll(r.Body)
+
 		if e != nil {
 			t.Fatalf("/comand response body read failed. %v", e)
 		}
 		if string(recvBody) != "test\n" {
 			t.Fatalf("/command response result unmatch %s != %s ", string(recvBody), "test\n")
 		}
+
 	}
+
 }
